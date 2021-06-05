@@ -223,6 +223,7 @@ static wchar_t dp_repertoire[] = {
 	0x1e5d,
 	0x1e62,
 	0x1e63,
+	0x1e6c,
 	0x1e6d,
 	0x1e92,
 	0x1e93,
@@ -298,6 +299,7 @@ int main(int argc, char **argv)
 {
 wint_t c, d, previous;
 wchar_t wbuff[10];
+int include_greek = 0;
 
   setlocale(LC_ALL, getenv("LANG"));
   hcreate(1024);
@@ -306,29 +308,54 @@ wchar_t wbuff[10];
   {
     if (c < 256)
     {
+      /* Basic Latin, Latin-1 Supplement */
       /* do nothing */
     }
     else if (wcschr(cp1252, c))
     {
+      /* Windows CP-1252 repertoire with Unicode encodings */
       /* do nothing */
     }
     else if ((c >= 0x35c) && (c <= 0x362))
     {
+      /* Combining characters that link two characters */
       wbuff[0] = previous;
       wbuff[1] = c;
-      wbuff[2] = fgetwc(stdin);
+      d = fgetwc(stdin);
+      wbuff[2] = d;
+      ungetwc(d, stdin);
       wbuff[3] = 0;
       /* fwprintf(stderr, L"Double combining character %ls %x\n", wbuff, c); */
-      /* should ungetc */
       add_to_table(wbuff);
     }
     else if ((c >= 0x300) && (c <= 0x36f))
     {
-      if ((previous < 0x300) || (previous >= 0x400))
+      /* combining characters */
+      if ((previous < 0x300) || (previous >= 0x370))
       {
         wbuff[0] = previous;
         wbuff[1] = c;
         wbuff[2] = 0;
+        add_to_table(wbuff);
+      }
+    }
+    else if ((c >= 0x370) && (c <= 0x3ff))
+    {
+      /* Greek and Coptic */
+      if (include_greek)
+      {
+        wbuff[0] = c;
+	wbuff[1] = 0;
+	add_to_table(wbuff);
+      }
+    }
+    else if ((c >= 0x1f00) && (c <= 0x1fff))
+    {
+      /* Greek Extended */
+      if (include_greek)
+      {
+        wbuff[0] = c;
+        wbuff[1] = 0;
         add_to_table(wbuff);
       }
     }
