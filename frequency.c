@@ -248,6 +248,26 @@ static wchar_t dp_repertoire[] = {
 	0x1e95,
 	0x2bf,
 	0x2be,
+	/* Symbols */
+	/* Some of the symbols have been omitted here */
+	0x2609,
+	0x211e,
+	0x2114,
+	0x2125,
+	0x292, /* ezh */
+	0x2108,
+	/* "recommended" custom characters */
+	/* Some of the characters have been omitted here */
+	0x2042,
+	0x2016,
+	0x128,
+	0x129,
+	0x130,
+	0x131,
+	0x168,
+	0x169,
+	0x23b,
+	0x23c,
 	0
 };
 
@@ -278,7 +298,7 @@ ENTRY *ep;
           wprintf(L" %04x %lc", wbuff[2], wbuff[2]);
         }
       }
-      if (wcschr(dp_repertoire, wbuff[0]) == 0)
+      if ((wbuff[1] == 0) && (wcschr(dp_repertoire, wbuff[0]) == 0))
         wprintf(L"  ***");
 
       wprintf(L"\n");
@@ -303,7 +323,6 @@ int include_greek = 0;
 
   setlocale(LC_ALL, getenv("LANG"));
   hcreate(1024);
-  fwprintf(stderr, L"%ls\n", cp1252);
   while ((c = fgetwc(stdin)) != WEOF)
   {
     if (c < 256)
@@ -316,7 +335,7 @@ int include_greek = 0;
       /* Windows CP-1252 repertoire with Unicode encodings */
       /* do nothing */
     }
-    else if ((c >= 0x35c) && (c <= 0x362))
+    else if (((c >= 0x35c) && (c <= 0x362)) || (c == 0x1dcd))
     {
       /* Combining characters that link two characters */
       wbuff[0] = previous;
@@ -358,6 +377,11 @@ int include_greek = 0;
         wbuff[1] = 0;
         add_to_table(wbuff);
       }
+    }
+    else if (c == 0xfeff)
+    {
+      /* byte order mark */
+      /* do nothing */
     }
     else
     {
